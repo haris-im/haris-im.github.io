@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Random Ball</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            display: grid;
+            place-items: center;
+            height: 100vmin;
+            background: black;
+            color: #fda000;
+            text-align: center;
+        }
+
+        .movers {
+            background: #fda000;
+            position: fixed;
+            left: -100px;
+            top: -100px;
+            width: 50px;
+            height: 50px;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            border-radius: 100%;
+            pointer-events: none;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="all">
+        <h1>Work In Progress</h1>
+        <h2>
+            <input id="trails" type="checkbox">
+        </h2>
+        <h3 id="click_test" class="movers"></h3>
+        <div class="mover-holder">
+
+        </div>
+    </div>
+   <script>
+        const mover = document.getElementById('click_test');
+        const moverHistory = [];
+        let his = false;
+        document.addEventListener('mousemove', e => {
+            mover.style.left = `${e.clientX}px`;
+            mover.style.top = `${e.clientY - 25}px`;
+
+            if (his) {
+
+                const el = document.createElement('h3');
+                el.classList.add('movers');
+                el.style.left = `${e.clientX}px`;
+                el.style.top = `${e.clientY - 25}px`;
+                document.getElementsByClassName('mover-holder')[0].appendChild(el);
+                moverHistory.unshift(el);
+            }
+        })
+
+        setInterval(() => {
+            if (moverHistory.length > 50) {
+                let remEl = moverHistory.pop();
+                if (remEl) remEl.remove();
+            }
+        }, 1)
+
+        const trailInput = document.getElementById('trails');
+        trailInput.addEventListener('change', e => {
+            his = trailInput.checked
+            if (!his) {
+                for (let i = moverHistory.length - 1; i >= 0; i--) {
+                    moverHistory[i].remove();
+                    moverHistory.pop();
+                }
+            }
+        })
+    </script>
+
+
+  </body>
+</html>
