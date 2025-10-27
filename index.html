@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Random Ball</title>
+    <title>Coming soon</title>
     <style>
         body {
             margin: 0;
@@ -12,7 +12,7 @@
             font-family: sans-serif;
             display: grid;
             place-items: center;
-            height: 100vmin;
+            height: 100vh;
             background: black;
             color: #fda000;
             text-align: center;
@@ -23,55 +23,178 @@
             position: fixed;
             left: -100px;
             top: -100px;
-            width: 50px;
-            height: 50px;
+            width: 20px;
+            height: 20px;
             transform: translate(-50%, -50%);
             z-index: 9999;
             border-radius: 100%;
             pointer-events: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #trail-item {
+            content: '';
+            background: #fda000;
+            display: block;
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+        }
+
+        #trail-item:hover {
+            background: #f37000;
+        }
+
+        #trails:checked + #trail-item {
+            background: #ff3333;
+        }
+
+        .cen {
+            display: flex;
+            justify-content: center;
+        }
+
+        .slider {
+            position: relative;
+            width: 25vw;
+            background: #fda000;
+            height: 20px;
+            border-radius: 100vw;
+            --val: 10;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            width: 40px;
+            border-radius: 5px;
+            height: 30px;
+            background: #f37000;
+            top: 50%;
+            transform: translateX(-50%) translateY(-50%);
+            left: calc(var(--val) * 1%);
+        }
+
+        @media (max-width: 900px) {
+            .slider {
+                width: 80vw;
+            }
+        }
+
+        .top-space {
+            margin-top: 2em;
         }
     </style>
   </head>
   <body>
     <div class="all">
         <h1>Work In Progress</h1>
-        <h2>
-            <input id="trails" type="checkbox">
-        </h2>
+        <div class="cen">
+            <input id="trails" class="hidden" type="checkbox">
+            <label id="trail-item" for="trails">
+            </label>
+        </div>
+        <div class="cen top-space">
+            <div id="prim-slider" class="slider">
+                <div class="slider-track"></div>
+                <div class="slider-thumb"></div>
+            </div>
+        </div>
         <h3 id="click_test" class="movers"></h3>
         <div class="mover-holder">
 
         </div>
     </div>
-   <script>
+    <script>
+
+        const sliderMinValue = 10;
+        const sliderMaxValue = 500;
+        const defaultSliderValue = 150;
+        let sliderValue = defaultSliderValue;
+
+        let diff = (sliderMaxValue - sliderMinValue);
+        function getVal() {
+            return ((sliderValue - sliderMinValue) / diff) * 100
+        }
+
+        const slider = document.getElementById('prim-slider');
+        slider.controllingSlider = false;
+        slider.style.setProperty('--val', getVal());
+
+        const sliderThumb = slider.querySelector('.slider-thumb');
+        sliderThumb.addEventListener('pointerdown', e => {
+            slider.controllingSlider = true;
+        })
+
+        document.addEventListener('pointerup', e => {
+            slider.controllingSlider = false;
+        })
+
+
         const mover = document.getElementById('click_test');
         const moverHistory = [];
         let his = false;
-        document.addEventListener('mousemove', e => {
-            mover.style.left = `${e.clientX}px`;
-            mover.style.top = `${e.clientY - 25}px`;
+
+        let m = {x: null, y: null}
+        setInterval(() => {
+            if (m.x === null || m.y === null) {
+                return;
+            }
+
+            mover.style.left = `${m.x}px`;
+            mover.style.top = `${m.y - 25}px`;
 
             if (his) {
-
                 const el = document.createElement('h3');
                 el.classList.add('movers');
-                el.style.left = `${e.clientX}px`;
-                el.style.top = `${e.clientY - 25}px`;
+                el.style.left = `${m.x}px`;
+                el.style.top = `${m.y - 25}px`;
                 document.getElementsByClassName('mover-holder')[0].appendChild(el);
                 moverHistory.unshift(el);
             }
-        })
 
-        setInterval(() => {
-            if (moverHistory.length > 50) {
+            if (moverHistory.length > sliderValue) {
+                // Remove twice as it adds because if the value changes to lower it can't catch up (believe me I was very confused)
                 let remEl = moverHistory.pop();
                 if (remEl) remEl.remove();
+
+                remEl = moverHistory.pop();
+                if (remEl) remEl.remove();
             }
-        }, 1)
+        })
+
+        document.addEventListener('mousemove', e => {
+            if (slider.controllingSlider) {
+                const bound = slider.getBoundingClientRect();
+                const x = e.clientX - bound.left;
+                sliderValue = Math.min(sliderMaxValue, Math.max(sliderMinValue, Math.floor((x / bound.width) * diff) + sliderMinValue));
+                slider.style.setProperty('--val', getVal());
+                return;
+            }
+
+            m.x = e.clientX;
+            m.y = e.clientY;
+        });
+
+        document.addEventListener('touchmove', e => {
+            if (slider.controllingSlider) {
+                const bound = slider.getBoundingClientRect();
+                const x = e.touches[0].clientX - bound.left;
+                sliderValue = Math.min(sliderMaxValue, Math.max(sliderMinValue, Math.floor((x / bound.width) * diff) + sliderMinValue));
+                slider.style.setProperty('--val', getVal());
+                return;
+            }
+
+            m.x = e.touches[0].clientX;
+            m.y = e.touches[0].clientY;
+        });
 
         const trailInput = document.getElementById('trails');
+        his = trailInput.checked;
         trailInput.addEventListener('change', e => {
-            his = trailInput.checked
+            his = trailInput.checked;
             if (!his) {
                 for (let i = moverHistory.length - 1; i >= 0; i--) {
                     moverHistory[i].remove();
@@ -79,8 +202,6 @@
                 }
             }
         })
-    </script>
-
-
+   </script>
   </body>
 </html>
